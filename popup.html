@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickArabic Settings</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <header class="popup-header">
+      <h1>QuickArabic</h1>
+      <div class="status-indicator">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Checking...</span>
+      </div>
+    </header>
+    
+    <main class="popup-main">
+      <!-- Extension Toggle -->
+      <section class="setting-section">
+        <div class="setting-item">
+          <label class="toggle-label">
+            <input type="checkbox" id="extensionToggle" class="toggle-input">
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Enable Extension</span>
+          </label>
+        </div>
+      </section>
+      
+      <!-- Trigger Method -->
+      <section class="setting-section">
+        <h3>Trigger Method</h3>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="triggerMethod" value="ctrl-space" id="ctrlSpace">
+            <span class="radio-custom"></span>
+            <span>Ctrl+Space</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="triggerMethod" value="double-space" id="doubleSpace">
+            <span class="radio-custom"></span>
+            <span>Double Spacebar</span>
+          </label>
+        </div>
+      </section>
+      
+      <!-- Preview Setting -->
+      <section class="setting-section">
+        <div class="setting-item">
+          <label class="toggle-label">
+            <input type="checkbox" id="previewToggle" class="toggle-input">
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Show Preview Before Converting</span>
+          </label>
+        </div>
+      </section>
+      
+      <!-- Custom Mappings -->
+      <section class="setting-section">
+        <h3>Custom Mappings</h3>
+        <div class="custom-mapping-container">
+          <div class="mapping-input-group">
+            <input type="text" id="customLatin" placeholder="Latin text" maxlength="20">
+            <span class="mapping-arrow">→</span>
+            <input type="text" id="customArabic" placeholder="Arabic text" maxlength="20" dir="rtl">
+            <button id="addMapping" class="btn btn-small">Add</button>
+          </div>
+          <div id="customMappingsList" class="custom-mappings-list"></div>
+        </div>
+      </section>
+      
+      <!-- Website Settings -->
+      <section class="setting-section">
+        <h3>Website Settings</h3>
+        <div class="website-settings">
+          <div class="website-info">
+            <span>Current site: <code id="currentSite">Loading...</code></span>
+          </div>
+          <div class="setting-item">
+            <label class="toggle-label">
+              <input type="checkbox" id="enableOnAllSites" class="toggle-input">
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">Enable on all websites</span>
+            </label>
+          </div>
+          <div id="siteSpecificSettings" class="site-specific" style="display: none;">
+            <div class="setting-item">
+              <label class="toggle-label">
+                <input type="checkbox" id="enableCurrentSite" class="toggle-input">
+                <span class="toggle-slider"></span>
+                <span class="toggle-text">Enable on current site</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Test Area -->
+      <section class="setting-section">
+        <h3>Test Conversion</h3>
+        <div class="test-container">
+          <input type="text" id="testInput" placeholder="Type Latin text here to test..." maxlength="50">
+          <button id="testConvert" class="btn">Convert</button>
+          <div id="testOutput" dir="rtl"></div>
+        </div>
+      </section>
+      
+      <!-- Quick Actions -->
+      <section class="setting-section">
+        <div class="quick-actions">
+          <button id="resetSettings" class="btn btn-secondary">Reset to Defaults</button>
+          <button id="exportSettings" class="btn btn-secondary">Export Settings</button>
+        </div>
+      </section>
+    </main>
+    
+    <footer class="popup-footer">
+      <div class="shortcuts-info">
+        <small>
+          <strong>Shortcuts:</strong> Ctrl+Space (convert), Ctrl+Shift+A (toggle)
+        </small>
+      </div>
+      <div class="version-info">
+        <small>v1.0.0 | Made with ❤️ for Arabic speakers</small>
+      </div>
+    </footer>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

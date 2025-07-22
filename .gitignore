@@ -1,0 +1,39 @@
+# Development files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules (if any)
+node_modules/
+
+# Build files
+dist/
+build/
+
+# Extension packaging
+*.zip
+*.xpi
+*.crx
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Browser extension debugging
+web-ext-artifacts/
+
+# Temporary files
+temp/
+tmp/

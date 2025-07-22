@@ -1,0 +1,64 @@
+ICON REQUIREMENTS FOR QUICKARABIC EXTENSION
+=====================================================
+
+You need to create the following icon files for the extension to work properly:
+
+REQUIRED ICON FILES:
+├── icon16.png   (16x16 pixels)   - Browser toolbar
+├── icon32.png   (32x32 pixels)   - Extension management page  
+├── icon48.png   (48x48 pixels)   - Extension management page
+└── icon128.png  (128x128 pixels) - Chrome Web Store & high DPI
+
+DESIGN GUIDELINES:
+==================
+
+CONCEPT: Arabic letter "ع" (Ain) combined with "A" for Arabic
+- Colors: Green (#4CAF50) and white/dark gray
+- Style: Modern, clean, readable at small sizes
+- Background: Transparent or subtle gradient
+
+OPTION 1 - Letter Combination:
+- Large "ع" (Arabic Ain) in green
+- Small "A" in the corner
+- Clean sans-serif font
+
+OPTION 2 - Keyboard Symbol:  
+- Stylized keyboard key with "ع→A" 
+- Green background, white text
+- Slight shadow/depth
+
+OPTION 3 - Conversion Arrow:
+- "a" with arrow pointing to "ع"
+- Green arrow, clean typography
+- Minimalist design
+
+TECHNICAL SPECS:
+================
+- Format: PNG with transparency
+- Resolution: 72-96 DPI
+- Color space: RGB
+- Background: Transparent preferred
+- Ensure visibility on light and dark backgrounds
+
+QUICK CREATION OPTIONS:
+======================
+
+1. CANVA/FIGMA: Use Arabic text tool, add English elements
+2. ONLINE GENERATORS: Browser extension icon makers
+3. AI TOOLS: "Create browser extension icon for Arabic transliteration app, green color theme, letter ع with A"
+
+PLACEHOLDER CREATION:
+====================
+If you need quick placeholders, create simple colored squares:
+- 16x16: Green square with white "ع"
+- 32x32: Green square with white "ع" 
+- 48x48: Green square with white "ع"
+- 128x128: Green square with white "ع" and small "A"
+
+The extension will work without icons, but they're needed for:
+- Professional appearance
+- Web store submission
+- Better user recognition
+- Toolbar visibility
+
+Once you have the icon files, place them in this /icons/ directory.
