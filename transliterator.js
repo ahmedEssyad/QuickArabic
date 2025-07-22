@@ -378,10 +378,6 @@ class ArabicTransliterator {
   escapeRegex(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
-    
-    // Initialize settings
-    this.loadSettings();
-  }
   
   async loadSettings() {
     try {

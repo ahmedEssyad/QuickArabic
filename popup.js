@@ -1,21 +1,35 @@
 class PopupController {
   constructor() {
-    this.transliterator = new ArabicTransliterator();
+    this.transliterator = null;
     this.currentTab = null;
     
     this.init();
   }
   
   async init() {
-    await this.transliterator.loadSettings();
-    await this.getCurrentTab();
-    
-    this.setupEventListeners();
-    this.loadSettings();
-    this.updateStatus();
-    this.loadCustomMappings();
-    
-    console.log('QuickArabic Popup: Initialized');
+    // Initialize transliterator safely
+    try {
+      if (typeof ArabicTransliterator === 'undefined') {
+        console.error('ArabicTransliterator not loaded yet, retrying...');
+        setTimeout(() => this.init(), 100);
+        return;
+      }
+      
+      this.transliterator = new ArabicTransliterator();
+      await this.transliterator.loadSettings();
+      await this.getCurrentTab();
+      
+      this.setupEventListeners();
+      this.loadSettings();
+      this.updateStatus();
+      this.loadCustomMappings();
+      
+      console.log('QuickArabic Popup: Initialized');
+    } catch (error) {
+      console.error('Failed to initialize popup:', error);
+      // Show error state in popup
+      this.showError('Failed to load extension. Please refresh the page.');
+    }
   }
   
   async getCurrentTab() {
@@ -408,6 +422,19 @@ class PopupController {
     setTimeout(() => {
       messageEl.remove();
     }, 3000);
+  }
+  
+  showError(message) {
+    const main = document.querySelector('.popup-main');
+    if (main) {
+      main.innerHTML = `
+        <div style="text-align: center; padding: 2rem; color: #e74c3c;">
+          <h3>Error</h3>
+          <p>${message}</p>
+          <button onclick="location.reload()" class="btn" style="margin-top: 1rem;">Retry</button>
+        </div>
+      `;
+    }
   }
 }
 
