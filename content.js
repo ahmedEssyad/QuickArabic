@@ -344,14 +344,19 @@ class QuickArabicContent {
   performConversion(arabicText, selectionStart, selectionEnd) {
     if (!this.currentElement) return;
     
-    if (this.currentElement.contentEditable === 'true') {
-      this.replaceContentEditableText(arabicText, selectionStart, selectionEnd);
-    } else {
-      this.replaceInputText(arabicText, selectionStart, selectionEnd);
+    // Try multiple methods for maximum compatibility
+    const success = this.replaceTextUniversal(arabicText, selectionStart, selectionEnd);
+    
+    if (!success) {
+      console.log('QuickArabic: Standard replacement failed, trying fallback methods');
+      this.replaceTextFallback(arabicText, selectionStart, selectionEnd);
     }
     
     // Set RTL direction if needed
     this.setTextDirection();
+    
+    // Trigger events for React/Vue/Angular apps
+    this.triggerInputEvents();
   }
   
   replaceInputText(arabicText, selectionStart, selectionEnd) {
@@ -482,6 +487,342 @@ class QuickArabicContent {
       }
     } catch (error) {
       console.error('QuickArabic: Error setting cursor position:', error);
+    }
+  }
+  
+  replaceTextUniversal(arabicText, selectionStart, selectionEnd) {
+    try {
+      // Method 1: Use document.execCommand (works in most cases)
+      if (document.queryCommandSupported('insertText')) {
+        // First select the text to replace
+        if (this.currentElement.contentEditable === 'true') {
+          const selection = window.getSelection();
+          const range = document.createRange();
+          
+          // Try to create range for the text to replace
+          const textNode = this.findTextNodeAtPosition(this.currentElement, selectionStart);
+          if (textNode) {
+            range.setStart(textNode.node, textNode.offset);
+            range.setEnd(textNode.node, textNode.offset + (selectionEnd - selectionStart));
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // Insert the Arabic text
+            const result = document.execCommand('insertText', false, arabicText);
+            if (result) {
+              console.log('QuickArabic: Successfully used execCommand method');
+              return true;
+            }
+          }
+        } else {
+          // For input/textarea elements
+          this.currentElement.focus();
+          this.currentElement.setSelectionRange(selectionStart, selectionEnd);
+          const result = document.execCommand('insertText', false, arabicText);
+          if (result) {
+            console.log('QuickArabic: Successfully used execCommand for input');
+            return true;
+          }
+        }
+      }
+      
+      // Method 2: Direct value/textContent replacement
+      if (this.currentElement.contentEditable === 'true') {
+        return this.replaceContentEditableAdvanced(arabicText, selectionStart, selectionEnd);
+      } else {
+        return this.replaceInputAdvanced(arabicText, selectionStart, selectionEnd);
+      }
+      
+    } catch (error) {
+      console.error('QuickArabic: Universal replacement error:', error);
+      return false;
+    }
+  }
+  
+  replaceInputAdvanced(arabicText, selectionStart, selectionEnd) {
+    try {
+      const element = this.currentElement;
+      const currentValue = element.value || '';
+      
+      const newValue = 
+        currentValue.substring(0, selectionStart) + 
+        arabicText + 
+        currentValue.substring(selectionEnd);
+      
+      element.value = newValue;
+      
+      // Set cursor position after the inserted text
+      const newCursorPos = selectionStart + arabicText.length;
+      element.setSelectionRange(newCursorPos, newCursorPos);
+      
+      return true;
+    } catch (error) {
+      console.error('QuickArabic: Input replacement error:', error);
+      return false;
+    }
+  }
+  
+  replaceContentEditableAdvanced(arabicText, selectionStart, selectionEnd) {
+    try {
+      const element = this.currentElement;
+      
+      // Method 1: Try to use Selection API properly
+      const selection = window.getSelection();
+      
+      // Clear any existing selection
+      selection.removeAllRanges();
+      
+      // Create new range at the position we want to replace
+      const range = this.createRangeAtPosition(element, selectionStart, selectionEnd);
+      
+      if (range) {
+        selection.addRange(range);
+        
+        // Try different insertion methods
+        if (this.insertTextAtRange(range, arabicText)) {
+          console.log('QuickArabic: Successfully used range insertion');
+          return true;
+        }
+      }
+      
+      // Method 2: Direct manipulation for Facebook-style editors
+      return this.replaceTextForFacebook(arabicText, selectionStart, selectionEnd);
+      
+    } catch (error) {
+      console.error('QuickArabic: ContentEditable replacement error:', error);
+      return false;
+    }
+  }
+  
+  replaceTextForFacebook(arabicText, selectionStart, selectionEnd) {
+    try {
+      // Facebook uses a complex contenteditable structure
+      // We need to find the actual text node and replace it
+      
+      const element = this.currentElement;
+      const walker = document.createTreeWalker(
+        element,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+      
+      let currentOffset = 0;
+      let targetNode = null;
+      let nodeOffset = 0;
+      
+      // Find the text node containing our selection start
+      let node;
+      while (node = walker.nextNode()) {
+        const nodeLength = node.textContent.length;
+        
+        if (currentOffset <= selectionStart && currentOffset + nodeLength >= selectionStart) {
+          targetNode = node;
+          nodeOffset = selectionStart - currentOffset;
+          break;
+        }
+        
+        currentOffset += nodeLength;
+      }
+      
+      if (targetNode) {
+        // Calculate the text to replace
+        const originalText = targetNode.textContent;
+        const beforeText = originalText.substring(0, nodeOffset);
+        const afterText = originalText.substring(nodeOffset + (selectionEnd - selectionStart));
+        
+        // Create new text content
+        const newText = beforeText + arabicText + afterText;
+        
+        // Replace the text node content
+        targetNode.textContent = newText;
+        
+        // Set cursor position after the inserted text
+        const newCursorPos = nodeOffset + arabicText.length;
+        this.setCursorInTextNode(targetNode, newCursorPos);
+        
+        console.log('QuickArabic: Successfully used Facebook-style replacement');
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('QuickArabic: Facebook replacement error:', error);
+      return false;
+    }
+  }
+  
+  replaceTextFallback(arabicText, selectionStart, selectionEnd) {
+    try {
+      // Last resort: simple text replacement
+      if (this.currentElement.contentEditable === 'true') {
+        const currentText = this.currentElement.textContent || '';
+        const newText = 
+          currentText.substring(0, selectionStart) + 
+          arabicText + 
+          currentText.substring(selectionEnd);
+        
+        this.currentElement.textContent = newText;
+        
+        // Try to set cursor position
+        const newPos = selectionStart + arabicText.length;
+        setTimeout(() => {
+          this.setCursorPosition(this.currentElement, newPos);
+        }, 10);
+        
+      } else {
+        // For input elements
+        const currentValue = this.currentElement.value || '';
+        const newValue = 
+          currentValue.substring(0, selectionStart) + 
+          arabicText + 
+          currentValue.substring(selectionEnd);
+        
+        this.currentElement.value = newValue;
+        const newPos = selectionStart + arabicText.length;
+        this.currentElement.setSelectionRange(newPos, newPos);
+      }
+      
+      console.log('QuickArabic: Used fallback replacement method');
+    } catch (error) {
+      console.error('QuickArabic: Fallback replacement failed:', error);
+    }
+  }
+  
+  createRangeAtPosition(element, start, end) {
+    try {
+      const walker = document.createTreeWalker(
+        element,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+      
+      let currentOffset = 0;
+      let startNode = null, endNode = null;
+      let startOffset = 0, endOffset = 0;
+      
+      let node;
+      while (node = walker.nextNode()) {
+        const nodeLength = node.textContent.length;
+        
+        if (!startNode && currentOffset + nodeLength >= start) {
+          startNode = node;
+          startOffset = start - currentOffset;
+        }
+        
+        if (!endNode && currentOffset + nodeLength >= end) {
+          endNode = node;
+          endOffset = end - currentOffset;
+          break;
+        }
+        
+        currentOffset += nodeLength;
+      }
+      
+      if (startNode && endNode) {
+        const range = document.createRange();
+        range.setStart(startNode, startOffset);
+        range.setEnd(endNode, endOffset);
+        return range;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('QuickArabic: Range creation error:', error);
+      return null;
+    }
+  }
+  
+  insertTextAtRange(range, text) {
+    try {
+      // Method 1: Delete and insert
+      range.deleteContents();
+      const textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+      
+      // Move cursor to end of inserted text
+      range.setStartAfter(textNode);
+      range.collapse(true);
+      
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      return true;
+    } catch (error) {
+      console.error('QuickArabic: Range insertion error:', error);
+      return false;
+    }
+  }
+  
+  setCursorInTextNode(textNode, position) {
+    try {
+      const range = document.createRange();
+      const selection = window.getSelection();
+      
+      range.setStart(textNode, Math.min(position, textNode.textContent.length));
+      range.collapse(true);
+      
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } catch (error) {
+      console.error('QuickArabic: Cursor positioning error:', error);
+    }
+  }
+  
+  findTextNodeAtPosition(element, position) {
+    try {
+      const walker = document.createTreeWalker(
+        element,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+      
+      let currentOffset = 0;
+      let node;
+      
+      while (node = walker.nextNode()) {
+        const nodeLength = node.textContent.length;
+        if (currentOffset + nodeLength >= position) {
+          return {
+            node: node,
+            offset: position - currentOffset
+          };
+        }
+        currentOffset += nodeLength;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('QuickArabic: Text node search error:', error);
+      return null;
+    }
+  }
+  
+  triggerInputEvents() {
+    if (!this.currentElement) return;
+    
+    try {
+      // Trigger input events for modern frameworks
+      const events = ['input', 'change', 'keyup', 'textInput'];
+      
+      events.forEach(eventType => {
+        const event = new Event(eventType, {
+          bubbles: true,
+          cancelable: true
+        });
+        this.currentElement.dispatchEvent(event);
+      });
+      
+      // Special handling for React
+      if (this.currentElement._valueTracker) {
+        this.currentElement._valueTracker.setValue('');
+      }
+      
+    } catch (error) {
+      console.error('QuickArabic: Event triggering error:', error);
     }
   }
   
