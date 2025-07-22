@@ -179,6 +179,14 @@ class QuickArabicContent {
   }
   
   async triggerConversion() {
+    // Facebook uses ultra-passive mode - different handler
+    if (this.isFacebook) {
+      console.log('QuickArabic: Facebook detected, using ultra-passive handler');
+      this.handleFacebookUltraPassive();
+      return;
+    }
+    
+    // Standard mode for non-Facebook sites
     if (!this.currentElement || !this.isTextInput(this.currentElement)) {
       // Try to find focused element
       this.currentElement = document.activeElement;
@@ -326,6 +334,18 @@ class QuickArabicContent {
   }
   
   showPreview(originalText, convertedText, selectionStart, selectionEnd) {
+    // Don't show preview on Facebook - use ultra-passive mode instead
+    if (this.isFacebook) {
+      console.log('QuickArabic: Skipping preview on Facebook, using ultra-passive mode');
+      return;
+    }
+    
+    // Check if preview element exists
+    if (!this.previewElement) {
+      console.log('QuickArabic: No preview element available');
+      return;
+    }
+    
     const preview = this.previewElement;
     
     preview.querySelector('.quickarabic-original').textContent = originalText;
