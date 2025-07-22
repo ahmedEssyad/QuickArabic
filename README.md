@@ -42,27 +42,36 @@ QuickArabic instantly converts Latin text to Arabic characters using phonetic tr
 
 ## 📖 Transliteration Guide
 
-### Basic Letters
-| Latin | Arabic | Example |
-|-------|--------|---------|
-| b | ب | `bab` → `باب` (door) |
-| t | ت | `tamr` → `تمر` (dates) |
-| th | ث | `thalatha` → `ثلاثة` (three) |
-| j | ج | `jamal` → `جمل` (camel) |
-| h | ح | `hub` → `حب` (love) |
-| kh | خ | `khayr` → `خير` (good) |
-| d | د | `dar` → `دار` (house) |
-| r | ر | `ruz` → `رز` (rice) |
-| s | س | `salam` → `سلام` (peace) |
-| sh | ش | `shams` → `شمس` (sun) |
-| f | ف | `fil` → `فيل` (elephant) |
-| q | ق | `qalam` → `قلم` (pen) |
-| k | ك | `kitab` → `كتاب` (book) |
-| l | ل | `layl` → `ليل` (night) |
-| m | م | `masjid` → `مسجد` (mosque) |
-| n | ن | `nahr` → `نهر` (river) |
-| w | و | `ward` → `ورد` (roses) |
-| y | ي | `yad` → `يد` (hand) |
+### Basic Letters (FIXED & IMPROVED!)
+| Latin | Arabic | Example | Notes |
+|-------|--------|---------|-------|
+| b | ب | `bab` → `باب` (door) | |
+| t | ت | `tamr` → `تمر` (dates) | |
+| th | ث | `thalatha` → `ثلاثة` (three) | |
+| j | ج | `jamal` → `جمل` (camel) | |
+| **h** | **ه** | **`bayt` → `بيته` (his house)** | **FIXED!** Regular Ha |
+| **H** | **ح** | **`Hub` → `حب` (love)** | **NEW!** Emphatic Ha |
+| kh | خ | `khayr` → `خير` (good) | |
+| d | د | `dar` → `دار` (house) | |
+| r | ر | `ruz` → `رز` (rice) | |
+| s | س | `salam` → `سلام` (peace) | |
+| sh | ش | `shams` → `شمس` (sun) | |
+| f | ف | `fil` → `فيل` (elephant) | |
+| q | ق | `qalam` → `قلم` (pen) | |
+| k | ك | `kitab` → `كتاب` (book) | |
+| l | ل | `layl` → `ليل` (night) | |
+| m | م | `masjid` → `مسجد` (mosque) | |
+| n | ن | `nahr` → `نهر` (river) | |
+| w | و | `ward` → `ورد` (roses) | |
+| y | ي | `yad` → `يد` (hand) | |
+
+### Hamza Forms (CRITICAL NEW FEATURE!)
+| Latin | Arabic | Example | Usage |
+|-------|--------|---------|-------|
+| **a2** | **أ** | **`a2hlan` → `أهلاً`** | **Alef + Hamza above** |
+| **a3** | **إ** | **`a3la` → `إلى`** | **Alef + Hamza below** |
+| **aa** | **آ** | **`aaman` → `آمان`** | **Alef + Madda** |
+| **2** | **ء** | **`su2al` → `سؤال`** | **Hamza alone** |
 
 ### Special Characters
 | Latin | Arabic | Note |

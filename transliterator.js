@@ -1,90 +1,240 @@
 class ArabicTransliterator {
   constructor() {
     this.mapping = {
-      // Basic consonants
-      'b': 'ب',
-      't': 'ت',
-      'th': 'ث',
-      'j': 'ج',
-      'h': 'ح',
-      'kh': 'خ',
-      'd': 'د',
-      'dh': 'ذ',
-      'r': 'ر',
-      'z': 'ز',
-      's': 'س',
-      'sh': 'ش',
-      'f': 'ف',
-      'q': 'ق',
-      'k': 'ك',
-      'l': 'ل',
-      'm': 'م',
-      'n': 'ن',
-      'w': 'و',
-      'y': 'ي',
+      // PRIORITY ORDER: Longer patterns first, then shorter ones
       
-      // Emphatic consonants (capital letters)
-      'S': 'ص',
-      'D': 'ض',
-      'T': 'ط',
-      'Z': 'ظ',
+      // Common Arabic patterns and words (highest priority)
+      'allah': 'الله',
+      'bismillah': 'بسم الله',
+      'alhamdulillah': 'الحمد لله',
+      'subhanallah': 'سبحان الله',
+      'inshallah': 'إن شاء الله',
+      'mashallah': 'ما شاء الله',
+      'astaghfirullah': 'أستغفر الله',
       
-      // Special characters using numbers (chat conventions)
-      '3': 'ع',
-      '7': 'ح',
-      
-      // Alternative representations
-      'gh': 'غ',
-      'u': 'و',
-      'i': 'ي',
-      
-      // Vowels
-      'a': 'ا',
-      'aa': 'ا',
-      'e': 'ي',
-      'ee': 'ي',
-      'o': 'و',
-      'oo': 'و',
-      
-      // Special endings
-      'ah': 'ة',
-      'eh': 'ة',
-      
-      // Common prefixes
+      // Definite articles (must come before 'al' alone)
       'al-': 'ال',
       'el-': 'ال',
+      'il-': 'ال',
       
-      // Single letters that might be missed
-      'g': 'ج', // alternative for j
-      'c': 'ك', // alternative for k
-      'x': 'كس' // rare but sometimes used
+      // Multi-character combinations (longer first)
+      'kh': 'خ',  // خ - Kha
+      'gh': 'غ',  // غ - Ghayn  
+      'sh': 'ش',  // ش - Sheen
+      'th': 'ث',  // ث - Tha
+      'dh': 'ذ',  // ذ - Thal
+      'ch': 'تش', // چ - Che (Persian/Urdu)
+      'zh': 'ژ',  // ژ - Zhe (Persian/Urdu)
+      'ng': 'نغ', // نگ - Ng sound
+      
+      // Hamza forms - CRITICAL FIX!
+      'aa': 'آ',   // آ - Alef with Madda
+      'a2': 'أ',   // أ - Alef with Hamza above
+      '2a': 'أ',   // أ - Alternative
+      'a3': 'إ',   // إ - Alef with Hamza below  
+      '3a': 'إ',   // إ - Alternative
+      'o2': 'ؤ',   // ؤ - Waw with Hamza
+      '2o': 'ؤ',   // ؤ - Alternative
+      'i2': 'ئ',   // ئ - Ya with Hamza
+      '2i': 'ئ',   // ئ - Alternative
+      '2': 'ء',    // ء - Hamza alone
+      
+      // Basic consonants
+      'b': 'ب',   // ب - Ba
+      'p': 'پ',   // پ - Pa (Persian/Urdu)
+      't': 'ت',   // ت - Ta
+      'T': 'ط',   // ط - Ta (emphatic)
+      'j': 'ج',   // ج - Jim
+      'H': 'ح',   // ح - Ha (emphatic) - FIXED!
+      'h': 'ه',   // ه - Ha (regular) - MAJOR FIX!
+      'd': 'د',   // د - Dal
+      'D': 'ض',   // ض - Dad (emphatic)
+      'r': 'ر',   // ر - Ra
+      'z': 'ز',   // ز - Zayn
+      's': 'س',   // س - Seen
+      'S': 'ص',   // ص - Sad (emphatic)
+      'f': 'ف',   // ف - Fa
+      'q': 'ق',   // ق - Qaf
+      'k': 'ك',   // ك - Kaf
+      'g': 'گ',   // گ - Gaf (Persian/Urdu)
+      'l': 'ل',   // ل - Lam
+      'm': 'م',   // م - Meem
+      'n': 'ن',   // ن - Noon
+      'w': 'و',   // و - Waw
+      'y': 'ي',   // ي - Ya
+      'v': 'ڤ',   // ڤ - Va (some dialects)
+      
+      // Emphatic/pharyngeal using numbers (chat Arabic)
+      '3': 'ع',   // ع - Ayn
+      '6': 'ط',   // ط - Ta (emphatic alternative)
+      '7': 'ح',   // ح - Ha (alternative)
+      '8': 'خ',   // خ - Kha (alternative)  
+      '9': 'ق',   // ق - Qaf (alternative)
+      '5': 'خ',   // خ - Kha (another alternative)
+      '4': 'ذ',   // ذ - Thal (rare)
+      
+      // Vowels and long vowels
+      'a': 'ا',   // ا - Alef
+      'i': 'ي',   // ي - Ya (as vowel)
+      'u': 'و',   // و - Waw (as vowel)
+      'e': 'ي',   // ي - Ya (as E sound)
+      'o': 'و',   // و - Waw (as O sound)
+      
+      // Common endings
+      'ah': 'ة',  // ة - Ta marbuta
+      'at': 'ة',  // ة - Ta marbuta (alternative)
+      'eh': 'ة',  // ة - Ta marbuta (Lebanese/Syrian)
+      'it': 'ة',  // ة - Ta marbuta (alternative)
+      
+      // Alternative spellings for difficult letters
+      'x': 'كس',  // كس - X sound approximation
+      'c': 'ك',   // ك - C as K
+      
+      // Regional variations
+      'P': 'ف',   // ف - P approximation in Classical Arabic
+      'V': 'ف',   // ف - V approximation in Classical Arabic
+      'G': 'ج'    // ج - G as J in Egyptian Arabic
     };
     
-    // Extended mappings for better accuracy
+    // Extended mappings for complete words and phrases
     this.extendedMapping = {
-      // Common word patterns
+      // Islamic phrases (already in main mapping but kept for backward compatibility)
       'allah': 'الله',
       'bismillah': 'بسم الله',
       'inshallah': 'إن شاء الله',
       'mashallah': 'ما شاء الله',
       'alhamdulillah': 'الحمد لله',
       'subhanallah': 'سبحان الله',
+      'astaghfirullah': 'أستغفر الله',
+      'lahaula': 'لا حول ولا قوة إلا بالله',
+      'barakallahu': 'بارك الله',
+      'jazakallahu': 'جزاك الله خيراً',
       
-      // Common greetings
+      // Greetings and common phrases
       'salam': 'سلام',
       'assalam': 'السلام',
+      'assalamu3alaykum': 'السلام عليكم',
+      'wa3alaykumassalam': 'وعليكم السلام',
       'ahlan': 'أهلاً',
+      'ahlanwasahlan': 'أهلاً وسهلاً',
       'marhaba': 'مرحباً',
+      'marhabik': 'مرحبك',  // feminine
       'shukran': 'شكراً',
+      'kateer': 'كتير',
       'afwan': 'عفواً',
+      '3afwan': 'عفواً',
+      'habibi': 'حبيبي',
+      'habibti': 'حبيبتي',
+      'hayati': 'حياتي',
+      'rohi': 'روحي',
+      'albi': 'قلبي',
       
-      // Question words
+      // Family terms
+      'abu': 'أبو',
+      'um': 'أم',
+      'ibn': 'ابن',
+      'bint': 'بنت',
+      'akh': 'أخ',
+      'ukht': 'أخت',
+      'baba': 'بابا',
+      'mama': 'ماما',
+      'teta': 'تيتا',
+      'jiddo': 'جدو',
+      
+      // Question words and interrogatives
       'shu': 'شو',
+      'sheno': 'شينو',
       'esh': 'إيش',
+      'eish': 'إيش',
       'kayf': 'كيف',
+      'kifak': 'كيفك',
+      'kifik': 'كيفك', // feminine
+      'shu2akhbarak': 'شو أخبارك',
       'wen': 'وين',
+      'fein': 'فين',
       'meta': 'متى',
-      'lesh': 'ليش'
+      'mata': 'متى',
+      'lesh': 'ليش',
+      'leih': 'ليه',
+      'min': 'مين',
+      'mino': 'مينو',
+      
+      // Common verbs
+      'ruh': 'روح',
+      'ta3al': 'تعال',
+      'ta3ali': 'تعالي', // feminine
+      'imshi': 'امشي',
+      'aruh': 'أروح',
+      'anam': 'أنام',
+      'akul': 'آكل',
+      'ashrab': 'أشرب',
+      'ashouf': 'أشوف',
+      'asma3': 'أسمع',
+      'aktib': 'أكتب',
+      'aqra': 'أقرأ',
+      
+      // Time and days
+      'yom': 'يوم',
+      'youm': 'يوم',
+      'sahar': 'سهر',
+      'leil': 'ليل',
+      'sabah': 'صباح',
+      'masa': 'مساء',
+      'nahar': 'نهار',
+      'sayi': 'صيف',
+      'shita': 'شتا',
+      
+      // Numbers in Arabic
+      'wahed': 'واحد',
+      'itnen': 'اثنين',
+      'tlate': 'تلاتة',
+      'arba3': 'أربعة',
+      'khamse': 'خمسة',
+      'site': 'ستة',
+      'saba3': 'سبعة',
+      'tmane': 'تمانية',
+      'tis3a': 'تسعة',
+      '3ashara': 'عشرة',
+      
+      // Colors
+      'abyad': 'أبيض',
+      'aswad': 'أسود',
+      'ahmar': 'أحمر',
+      'akhdar': 'أخضر',
+      'azraq': 'أزرق',
+      'asfar': 'أصفر',
+      'banafsaji': 'بنفسجي',
+      'wardi': 'وردي',
+      
+      // Common adjectives
+      'kibeer': 'كبير',
+      'sgheer': 'صغير',
+      'taweel': 'طويل',
+      'qaseer': 'قصير',
+      'helou': 'حلو',
+      'helu': 'حلو',
+      'jemeel': 'جميل',
+      'jameel': 'جميل',
+      'sa3b': 'صعب',
+      'sahel': 'سهل',
+      'jdeed': 'جديد',
+      'qadeem': 'قديم',
+      
+      // Food and drink
+      'khubz': 'خبز',
+      'lahem': 'لحمة',
+      'samak': 'سمك',
+      'ruz': 'رز',
+      'makarona': 'مكرونة',
+      'salata': 'سلطة',
+      'shawar': 'شاورما',
+      'falafel': 'فلافل',
+      'hommus': 'حمص',
+      'tabbule': 'تبولة',
+      'qahwe': 'قهوة',
+      'shai': 'شاي',
+      'mai': 'مي',
+      'mayy': 'ميّ'
     };
     
     // Initialize settings
