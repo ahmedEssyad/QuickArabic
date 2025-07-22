@@ -610,7 +610,12 @@ class QuickArabicContent {
       console.log('QuickArabic: Attempting Facebook replacement...');
       const element = this.currentElement;
       
-      // Method 1: Try the most aggressive approach for Facebook
+      // Method 0: SIMPLE APPROACH - Just replace selected text and simulate paste
+      if (this.facebookSimpleReplace(arabicText, selectionStart, selectionEnd)) {
+        return true;
+      }
+      
+      // Method 1: Try the nuclear approach
       if (this.facebookForceReplace(arabicText, selectionStart, selectionEnd)) {
         return true;
       }
@@ -632,52 +637,186 @@ class QuickArabicContent {
     }
   }
   
+  facebookSimpleReplace(arabicText, selectionStart, selectionEnd) {
+    try {
+      const element = this.currentElement;
+      console.log('QuickArabic: Trying simple Facebook replacement...');
+      
+      // Step 1: Focus the element
+      element.focus();
+      
+      // Step 2: Create a selection for the text to replace
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      
+      // Find the text node and create range
+      const range = this.createRangeAtPosition(element, selectionStart, selectionEnd);
+      if (!range) {
+        console.log('QuickArabic: Could not create range');
+        return false;
+      }
+      
+      selection.addRange(range);
+      
+      // Step 3: Use insertText which is the most React-friendly approach
+      const success = document.execCommand('insertText', false, arabicText);
+      
+      if (success) {
+        console.log('QuickArabic: Simple Facebook replacement succeeded with insertText');
+        // Small delay to ensure React processes the change
+        setTimeout(() => {
+          this.forceFacebookUpdate(element);
+        }, 10);
+        return true;
+      }
+      
+      // Step 4: If insertText failed, try paste simulation
+      return this.simulateRealPaste(element, arabicText);
+      
+    } catch (error) {
+      console.error('QuickArabic: Simple Facebook replacement failed:', error);
+      return false;
+    }
+  }
+  
+  simulateRealPaste(element, text) {
+    try {
+      console.log('QuickArabic: Simulating paste operation...');
+      element.focus();
+      
+      // Create and dispatch a proper paste event
+      const clipboardEvent = new ClipboardEvent('paste', {
+        clipboardData: new DataTransfer(),
+        bubbles: true,
+        cancelable: true
+      });
+      
+      // Set the text data
+      clipboardEvent.clipboardData.setData('text/plain', text);
+      
+      // Dispatch the event
+      const eventResult = element.dispatchEvent(clipboardEvent);
+      
+      if (eventResult) {
+        console.log('QuickArabic: Paste simulation succeeded');
+        return true;
+      }
+      
+      // If paste event was prevented, try manual insertion
+      return this.manualTextInsertion(element, text);
+      
+    } catch (error) {
+      console.error('QuickArabic: Paste simulation failed:', error);
+      return false;
+    }
+  }
+  
+  manualTextInsertion(element, text) {
+    try {
+      console.log('QuickArabic: Trying manual text insertion...');
+      
+      // Get current selection
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        
+        // Insert text node
+        const textNode = document.createTextNode(text);
+        range.insertNode(textNode);
+        
+        // Move cursor after inserted text
+        range.setStartAfter(textNode);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        // Force Facebook update
+        this.forceFacebookUpdate(element);
+        
+        console.log('QuickArabic: Manual text insertion succeeded');
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('QuickArabic: Manual text insertion failed:', error);
+      return false;
+    }
+  }
+  
   facebookForceReplace(arabicText, selectionStart, selectionEnd) {
     try {
       const element = this.currentElement;
       
-      // Get current text content
-      const currentText = element.textContent || '';
+      // NUCLEAR OPTION: Simulate actual user typing
+      console.log('QuickArabic: Starting Facebook nuclear replacement...');
       
-      // Create new text with Arabic replacement
+      // Step 1: Clear the field completely
+      element.focus();
+      
+      // Select all existing text
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // Delete all content
+      document.execCommand('delete', false, null);
+      
+      // Step 2: Get the text with replacement
+      const currentText = element.textContent || '';
       const newText = 
         currentText.substring(0, selectionStart) + 
         arabicText + 
         currentText.substring(selectionEnd);
       
-      // Method 1: Use Selection API with execCommand
-      const selection = window.getSelection();
-      selection.removeAllRanges();
+      // Step 3: Type the new text character by character (simulating user typing)
+      this.simulateTyping(element, newText);
       
-      // Select the entire element content
-      const range = document.createRange();
-      range.selectNodeContents(element);
-      selection.addRange(range);
-      
-      // Try to replace with execCommand
-      if (document.execCommand('insertText', false, newText)) {
-        console.log('QuickArabic: Facebook force replace via execCommand succeeded');
-        return true;
-      }
-      
-      // Method 2: Direct textContent replacement
-      element.textContent = newText;
-      
-      // Force Facebook to recognize the change
-      this.forceFacebookUpdate(element);
-      
-      // Set cursor position
-      setTimeout(() => {
-        this.setCursorPosition(element, selectionStart + arabicText.length);
-      }, 10);
-      
-      console.log('QuickArabic: Facebook force replace via textContent succeeded');
+      console.log('QuickArabic: Facebook nuclear replacement completed');
       return true;
       
     } catch (error) {
-      console.error('QuickArabic: Facebook force replace failed:', error);
+      console.error('QuickArabic: Facebook nuclear replacement failed:', error);
       return false;
     }
+  }
+  
+  simulateTyping(element, text) {
+    element.focus();
+    
+    // Method 1: Try to paste the text (most reliable for React)
+    try {
+      // Clear any existing content
+      document.execCommand('selectAll', false, null);
+      document.execCommand('delete', false, null);
+      
+      // Create a fake clipboard event with our Arabic text
+      const clipboardData = new DataTransfer();
+      clipboardData.setData('text/plain', text);
+      
+      const pasteEvent = new ClipboardEvent('paste', {
+        clipboardData: clipboardData,
+        bubbles: true,
+        cancelable: true
+      });
+      
+      element.dispatchEvent(pasteEvent);
+      
+      // If paste event didn't work, use insertText
+      if (!element.textContent.includes(text.charAt(0))) {
+        document.execCommand('insertText', false, text);
+      }
+      
+    } catch (error) {
+      // Fallback: Use insertText
+      document.execCommand('insertText', false, text);
+    }
+    
+    // Trigger comprehensive update
+    this.forceFacebookUpdate(element);
   }
   
   facebookTreeWalkerReplace(arabicText, selectionStart, selectionEnd) {
