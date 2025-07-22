@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QuickArabic Icon Generator</title>
+</head>
+<body>
+    <h2>QuickArabic Icon Generator</h2>
+    <p>This will create placeholder icons for your extension.</p>
+    
+    <canvas id="canvas" width="128" height="128" style="border: 1px solid #ccc;"></canvas>
+    <br><br>
+    
+    <button onclick="generateIcons()">Generate All Icons</button>
+    <div id="downloads"></div>
+    
+    <script>
+        function generateIcons() {
+            const sizes = [16, 32, 48, 128];
+            const downloads = document.getElementById('downloads');
+            downloads.innerHTML = '';
+            
+            sizes.forEach(size => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                // Green background
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillRect(0, 0, size, size);
+                
+                // White Arabic letter ع
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${size * 0.6}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('ع', size/2, size/2);
+                
+                // Create download link
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `icon${size}.png`;
+                    link.textContent = `Download icon${size}.png`;
+                    link.style.display = 'block';
+                    link.style.margin = '5px 0';
+                    downloads.appendChild(link);
+                });
+            });
+        }
+        
+        // Auto-generate on load
+        window.onload = generateIcons;
+    </script>
+</body>
+</html>
