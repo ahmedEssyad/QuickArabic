@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test QuickArabic Transliteration</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-case { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .input { font-family: monospace; color: blue; }
+        .output { font-family: 'Arabic UI Display', Arial, sans-serif; font-size: 18px; color: green; direction: rtl; }
+        .expected { font-family: 'Arabic UI Display', Arial, sans-serif; font-size: 18px; color: red; direction: rtl; }
+        .correct { background-color: #d4edda; }
+        .incorrect { background-color: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>QuickArabic Transliteration Test</h1>
+    <div id="results"></div>
+    
+    <script src="transliterator.js"></script>
+    <script>
+        const transliterator = new ArabicTransliterator();
+        
+        // Test cases that were problematic
+        const testCases = [
+            // The reported problem
+            { input: 'ahlan', expected: 'أهلان', description: 'ahlan should NOT become ةلان' },
+            { input: 'marhaba', expected: 'مرحبا', description: 'marhaba basic test' },
+            { input: 'sabah', expected: 'صباح', description: 'sabah should end with ح not ة' },
+            { input: 'madrasa', expected: 'مدرسا', description: 'madrasa should not have ة in middle' },
+            
+            // Word endings that SHOULD have ta marbuta
+            { input: 'madrasah', expected: 'مدرسة', description: 'madrasah should end with ة' },
+            { input: 'kitabah', expected: 'كتابة', description: 'kitabah should end with ة' },
+            { input: 'sayyarat', expected: 'سيارة', description: 'sayyarat should end with ة' },
+            
+            // Hamza forms
+            { input: 'a2hlan', expected: 'أهلان', description: 'a2hlan should start with أ' },
+            { input: 'a3la', expected: 'إلى', description: 'a3la should start with إ' },
+            
+            // Regular words
+            { input: 'habibi', expected: 'حبيبي', description: 'habibi basic test' },
+            { input: 'shukran', expected: 'شكران', description: 'shukran basic test' },
+            { input: 'kayf', expected: 'كيف', description: 'kayf basic test' },
+            { input: 'halak', expected: 'حلاك', description: 'halak should have ح and ه' },
+            
+            // Multi-word from user example  
+            { input: 'wmr7ba', expected: 'ومرحبا', description: 'wmr7ba should work with numbers' }
+        ];
+        
+        const resultsDiv = document.getElementById('results');
+        
+        testCases.forEach(testCase => {
+            const actual = transliterator.transliterate(testCase.input);
+            const isCorrect = actual === testCase.expected;
+            
+            const div = document.createElement('div');
+            div.className = `test-case ${isCorrect ? 'correct' : 'incorrect'}`;
+            div.innerHTML = `
+                <strong>${testCase.description}</strong><br>
+                Input: <span class="input">"${testCase.input}"</span><br>
+                Expected: <span class="expected">${testCase.expected}</span><br>
+                Actual: <span class="output">${actual}</span><br>
+                Result: ${isCorrect ? '✅ PASS' : '❌ FAIL'}
+            `;
+            
+            resultsDiv.appendChild(div);
+        });
+    </script>
+</body>
+</html>

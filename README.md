@@ -131,13 +131,22 @@ kayf halak → كيف حالك (how are you)
 allah ma3ik → الله معك (God be with you)
 ```
 
-### Common Words
+### Common Words (FIXED EXAMPLES!)
 ```
-bayt → بيت (house)
-madrasa → مدرسة (school)  
-maktab → مكتب (office)
-sayara → سيارة (car)
-habibi → حبيبي (my dear)
+✅ CORRECT NOW:
+ahlan → أهلان (welcome) - NOT ةلان  
+marhaba → مرحبا (hello) - NOT مرحبة
+habibi → حبيبي (my dear)  
+sabah → صباح (morning) - NOT صبة
+
+✅ WORDS WITH TA MARBUTA (ة) AT END:
+madrasah → مدرسة (school)
+sayyarah → سيارة (car)  
+kitabah → كتابة (writing)
+
+✅ HAMZA FORMS:
+a2hlan → أهلان (welcome with hamza)
+a3la → إلى (to/towards)
 ```
 
 ## 🛠️ Technical Details

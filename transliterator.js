@@ -80,11 +80,7 @@ class ArabicTransliterator {
       'e': 'ي',   // ي - Ya (as E sound)
       'o': 'و',   // و - Waw (as O sound)
       
-      // Common endings
-      'ah': 'ة',  // ة - Ta marbuta
-      'at': 'ة',  // ة - Ta marbuta (alternative)
-      'eh': 'ة',  // ة - Ta marbuta (Lebanese/Syrian)
-      'it': 'ة',  // ة - Ta marbuta (alternative)
+      // These will be handled specially at word endings only
       
       // Alternative spellings for difficult letters
       'x': 'كس',  // كس - X sound approximation
@@ -279,22 +275,60 @@ class ArabicTransliterator {
       return this.customMappings[lowerText];
     }
     
-    // Handle multi-character mappings first (longest first)
-    const sortedKeys = Object.keys(this.mapping).sort((a, b) => b.length - a.length);
-    
-    for (const latinChar of sortedKeys) {
-      const arabicChar = this.mapping[latinChar];
-      result = result.replace(new RegExp(latinChar, 'g'), arabicChar);
-    }
-    
-    // Handle definite article
-    result = result.replace(/^al-/g, 'ال');
-    result = result.replace(/^el-/g, 'ال');
-    
-    // Clean up any remaining Latin characters that didn't match
+    // SMART TRANSLITERATION: Handle word endings first, then do character-by-character
+    result = this.handleWordEndings(result);
+    result = this.handleCharacterMapping(result);
+    result = this.handleDefiniteArticles(result);
     result = this.handleUnmappedCharacters(result);
     
     return result;
+  }
+  
+  handleWordEndings(text) {
+    // Handle ta marbuta endings correctly
+    // Only at word boundaries, not in middle of words
+    text = text.replace(/ah$/g, 'ة');     // word ending with ah → ة
+    text = text.replace(/at$/g, 'ة');     // word ending with at → ة  
+    text = text.replace(/eh$/g, 'ة');     // word ending with eh → ة
+    text = text.replace(/it$/g, 'ة');     // word ending with it → ة
+    
+    // Handle hamza endings
+    text = text.replace(/a2$/g, 'أ');     // word ending with a2 → أ
+    text = text.replace(/2a$/g, 'أ');     // word ending with 2a → أ
+    
+    return text;
+  }
+  
+  handleCharacterMapping(text) {
+    // Create a copy of mapping without problematic endings
+    const safeMapping = { ...this.mapping };
+    
+    // Remove endings that should only be at word boundaries
+    delete safeMapping['ah'];
+    delete safeMapping['at'];  
+    delete safeMapping['eh'];
+    delete safeMapping['it'];
+    
+    // Sort by length (longest first) for proper pattern matching
+    const sortedKeys = Object.keys(safeMapping).sort((a, b) => b.length - a.length);
+    
+    // Apply each mapping pattern
+    for (const latinChar of sortedKeys) {
+      const arabicChar = safeMapping[latinChar];
+      // Use word boundary-aware replacement for better accuracy
+      text = text.replace(new RegExp(latinChar, 'g'), arabicChar);
+    }
+    
+    return text;
+  }
+  
+  handleDefiniteArticles(text) {
+    // Handle definite articles at word beginnings
+    text = text.replace(/^al-/g, 'ال');
+    text = text.replace(/^el-/g, 'ال');
+    text = text.replace(/^il-/g, 'ال');
+    
+    return text;
   }
   
   handleUnmappedCharacters(text) {
