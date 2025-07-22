@@ -284,6 +284,35 @@ class ArabicTransliterator {
     return result;
   }
   
+  // NEW: Transliterate full paragraph with multiple words
+  transliterateParagraph(text) {
+    if (!text || typeof text !== 'string') return '';
+    
+    // Split by spaces and other word boundaries but preserve them
+    const parts = text.split(/(\s+|[^\w\u0600-\u06FF]+)/);
+    
+    const translatedParts = parts.map(part => {
+      // If it's whitespace or punctuation, keep as is
+      if (/^\s+$/.test(part) || /^[^\w\u0600-\u06FF]+$/.test(part)) {
+        return part;
+      }
+      
+      // If it's already Arabic, keep as is
+      if (/[\u0600-\u06FF]/.test(part)) {
+        return part;
+      }
+      
+      // If it's a word with Latin characters, transliterate it
+      if (/[a-zA-Z0-9]/.test(part)) {
+        return this.transliterate(part);
+      }
+      
+      return part;
+    });
+    
+    return translatedParts.join('');
+  }
+  
   handleWordEndings(text) {
     // Handle ta marbuta endings correctly
     // Only at word boundaries, not in middle of words
