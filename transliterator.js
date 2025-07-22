@@ -1,9 +1,8 @@
 class ArabicTransliterator {
   constructor() {
+    // SMART MAPPING: Only convert when it makes sense!
     this.mapping = {
-      // PRIORITY ORDER: Longer patterns first, then shorter ones
-      
-      // Common Arabic patterns and words (highest priority)
+      // PRIORITY 1: Complete Arabic words (highest priority)
       'allah': 'الله',
       'bismillah': 'بسم الله',
       'alhamdulillah': 'الحمد لله',
@@ -11,85 +10,69 @@ class ArabicTransliterator {
       'inshallah': 'إن شاء الله',
       'mashallah': 'ما شاء الله',
       'astaghfirullah': 'أستغفر الله',
+      'salam': 'سلام',
+      'ahlan': 'أهلان',
+      'marhaba': 'مرحباً',
+      'shukran': 'شكراً',
+      'habibi': 'حبيبي',
+      'habibti': 'حبيبتي',
       
-      // Definite articles (must come before 'al' alone)
+      // PRIORITY 2: Definite articles 
       'al-': 'ال',
       'el-': 'ال',
       'il-': 'ال',
       
-      // Multi-character combinations (longer first)
-      'kh': 'خ',  // خ - Kha
-      'gh': 'غ',  // غ - Ghayn  
-      'sh': 'ش',  // ش - Sheen
-      'th': 'ث',  // ث - Tha
-      'dh': 'ذ',  // ذ - Thal
-      'ch': 'تش', // چ - Che (Persian/Urdu)
-      'zh': 'ژ',  // ژ - Zhe (Persian/Urdu)
-      'ng': 'نغ', // نگ - Ng sound
+      // PRIORITY 3: Special Arabic sounds (longer combinations first)
+      'kh': 'خ',   // خ - Kha (keep this)
+      'gh': 'غ',   // غ - Ghayn (keep this)
+      'sh': 'ش',   // ش - Sheen (keep this)  
+      'th': 'ث',   // ث - Tha (keep this)
+      'dh': 'ذ',   // ذ - Thal (keep this)
       
-      // Hamza forms - CRITICAL FIX!
-      'aa': 'آ',   // آ - Alef with Madda
-      'a2': 'أ',   // أ - Alef with Hamza above
-      '2a': 'أ',   // أ - Alternative
-      'a3': 'إ',   // إ - Alef with Hamza below  
-      '3a': 'إ',   // إ - Alternative
-      'o2': 'ؤ',   // ؤ - Waw with Hamza
-      '2o': 'ؤ',   // ؤ - Alternative
-      'i2': 'ئ',   // ئ - Ya with Hamza
-      '2i': 'ئ',   // ئ - Alternative
-      '2': 'ء',    // ء - Hamza alone
+      // PRIORITY 4: Chat Arabic numbers (very common)
+      '3': 'ع',    // ع - Ayn
+      '7': 'ح',    // ح - Ha  
+      '9': 'ق',    // ق - Qaf
+      '8': 'خ',    // خ - Kha (alternative)
+      '6': 'ط',    // ط - Ta (emphatic)
+      '5': 'خ',    // خ - Kha (another common one)
+      '2': 'ء',    // ء - Hamza
       
-      // Basic consonants
-      'b': 'ب',   // ب - Ba
-      'p': 'پ',   // پ - Pa (Persian/Urdu)
-      't': 'ت',   // ت - Ta
-      'T': 'ط',   // ط - Ta (emphatic)
-      'j': 'ج',   // ج - Jim
-      'H': 'ح',   // ح - Ha (emphatic) - FIXED!
-      'h': 'ه',   // ه - Ha (regular) - MAJOR FIX!
-      'd': 'د',   // د - Dal
-      'D': 'ض',   // ض - Dad (emphatic)
-      'r': 'ر',   // ر - Ra
-      'z': 'ز',   // ز - Zayn
-      's': 'س',   // س - Seen
-      'S': 'ص',   // ص - Sad (emphatic)
-      'f': 'ف',   // ف - Fa
-      'q': 'ق',   // ق - Qaf
-      'k': 'ك',   // ك - Kaf
-      'g': 'گ',   // گ - Gaf (Persian/Urdu)
-      'l': 'ل',   // ل - Lam
-      'm': 'م',   // م - Meem
-      'n': 'ن',   // ن - Noon
-      'w': 'و',   // و - Waw
-      'y': 'ي',   // ي - Ya
-      'v': 'ڤ',   // ڤ - Va (some dialects)
+      // PRIORITY 5: Essential consonants (NO VOWELS HERE!)
+      'b': 'ب',    // ب - Ba
+      't': 'ت',    // ت - Ta  
+      'j': 'ج',    // ج - Jim
+      'd': 'د',    // د - Dal
+      'r': 'ر',    // ر - Ra
+      'z': 'ز',    // ز - Zayn
+      's': 'س',    // س - Seen
+      'f': 'ف',    // ف - Fa
+      'q': 'ق',    // ق - Qaf
+      'k': 'ك',    // ك - Kaf
+      'l': 'ل',    // ل - Lam
+      'm': 'م',    // م - Meem
+      'n': 'ن',    // ن - Noon
+      'w': 'و',    // و - Waw
+      'y': 'ي',    // ي - Ya
       
-      // Emphatic/pharyngeal using numbers (chat Arabic)
-      '3': 'ع',   // ع - Ayn
-      '6': 'ط',   // ط - Ta (emphatic alternative)
-      '7': 'ح',   // ح - Ha (alternative)
-      '8': 'خ',   // خ - Kha (alternative)  
-      '9': 'ق',   // ق - Qaf (alternative)
-      '5': 'خ',   // خ - Kha (another alternative)
-      '4': 'ذ',   // ذ - Thal (rare)
+      // PRIORITY 6: Emphatic letters (capital = emphatic)
+      'T': 'ط',    // ط - Ta (emphatic)
+      'S': 'ص',    // ص - Sad (emphatic)
+      'D': 'ض',    // ض - Dad (emphatic)
+      'H': 'ح',    // ح - Ha (emphatic)
+      'Z': 'ظ',    // ظ - Zah (emphatic)
       
-      // Vowels and long vowels
-      'a': 'ا',   // ا - Alef
-      'i': 'ي',   // ي - Ya (as vowel)
-      'u': 'و',   // و - Waw (as vowel)
-      'e': 'ي',   // ي - Ya (as E sound)
-      'o': 'و',   // و - Waw (as O sound)
+      // PRIORITY 7: Only convert standalone h at word end or before consonants
+      // 'h' mapping is handled specially in the logic
       
-      // These will be handled specially at word endings only
+      // REMOVED PROBLEMATIC MAPPINGS:
+      // - NO 'a' → 'ا' (too common in English)
+      // - NO 'i' → 'ي' (too common in English)  
+      // - NO 'u' → 'و' (too common in English)
+      // - NO 'o' → 'و' (too common in English)
+      // - NO 'e' → 'ي' (too common in English)
       
-      // Alternative spellings for difficult letters
-      'x': 'كس',  // كس - X sound approximation
-      'c': 'ك',   // ك - C as K
-      
-      // Regional variations
-      'P': 'ف',   // ف - P approximation in Classical Arabic
-      'V': 'ف',   // ف - V approximation in Classical Arabic
-      'G': 'ج'    // ج - G as J in Egyptian Arabic
+      // Special cases will be handled in logic
     };
     
     // Extended mappings for complete words and phrases
@@ -329,24 +312,56 @@ class ArabicTransliterator {
   }
   
   handleCharacterMapping(text) {
-    // Create a copy of mapping without problematic endings
-    const safeMapping = { ...this.mapping };
-    
-    // Remove endings that should only be at word boundaries
-    delete safeMapping['ah'];
-    delete safeMapping['at'];  
-    delete safeMapping['eh'];
-    delete safeMapping['it'];
-    
     // Sort by length (longest first) for proper pattern matching
-    const sortedKeys = Object.keys(safeMapping).sort((a, b) => b.length - a.length);
+    const sortedKeys = Object.keys(this.mapping).sort((a, b) => b.length - a.length);
     
     // Apply each mapping pattern
     for (const latinChar of sortedKeys) {
-      const arabicChar = safeMapping[latinChar];
-      // Use word boundary-aware replacement for better accuracy
+      const arabicChar = this.mapping[latinChar];
       text = text.replace(new RegExp(latinChar, 'g'), arabicChar);
     }
+    
+    // SMART VOWEL HANDLING: Only add vowels in specific contexts
+    text = this.handleSmartVowels(text);
+    
+    // SMART H HANDLING: Convert 'h' only in specific contexts
+    text = this.handleSmartH(text);
+    
+    return text;
+  }
+  
+  handleSmartVowels(text) {
+    // Only convert isolated vowels at word boundaries or after Arabic letters
+    
+    // Convert 'a' to 'ا' only:
+    // - At start of word: 'ana' → 'أنا'  
+    // - After Arabic consonant: 'ba' → 'با'
+    text = text.replace(/\ba(?=[bcdfgjklmnpqrstvwxyz]|$)/g, 'ا');
+    
+    // Convert 'i' to 'ي' only:
+    // - At end of words: 'habibi' → 'حبيبي'
+    // - In specific Arabic contexts
+    text = text.replace(/i(?=\b)/g, 'ي');
+    
+    // Convert 'u' to 'و' only:
+    // - At end of words or before consonants
+    text = text.replace(/u(?=[bcdfgjklmnpqrstvwxyz]|\b)/g, 'و');
+    
+    return text;
+  }
+  
+  handleSmartH(text) {
+    // Convert 'h' to 'ه' only in specific contexts:
+    // 1. At the end of words: 'kitabah' → 'كتابه'
+    // 2. Before consonants: 'lahm' → 'لحم'
+    // 3. NOT in combinations like 'th', 'sh', 'kh', 'gh' (already handled)
+    
+    // Don't convert 'h' that's part of digraphs (th, sh, kh, gh already handled above)
+    // Convert standalone 'h' at word end
+    text = text.replace(/h\b/g, 'ه');
+    
+    // Convert 'h' before consonants (but not vowels)
+    text = text.replace(/h(?=[bcdfgjklmnpqrstvwxyz])/g, 'ه');
     
     return text;
   }

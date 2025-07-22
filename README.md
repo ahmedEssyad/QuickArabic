@@ -42,28 +42,41 @@ QuickArabic instantly converts Latin text to Arabic characters using phonetic tr
 
 ## 📖 Transliteration Guide
 
-### Basic Letters (FIXED & IMPROVED!)
-| Latin | Arabic | Example | Notes |
-|-------|--------|---------|-------|
-| b | ب | `bab` → `باب` (door) | |
-| t | ت | `tamr` → `تمر` (dates) | |
-| th | ث | `thalatha` → `ثلاثة` (three) | |
-| j | ج | `jamal` → `جمل` (camel) | |
-| **h** | **ه** | **`bayt` → `بيته` (his house)** | **FIXED!** Regular Ha |
-| **H** | **ح** | **`Hub` → `حب` (love)** | **NEW!** Emphatic Ha |
-| kh | خ | `khayr` → `خير` (good) | |
-| d | د | `dar` → `دار` (house) | |
-| r | ر | `ruz` → `رز` (rice) | |
-| s | س | `salam` → `سلام` (peace) | |
-| sh | ش | `shams` → `شمس` (sun) | |
-| f | ف | `fil` → `فيل` (elephant) | |
-| q | ق | `qalam` → `قلم` (pen) | |
-| k | ك | `kitab` → `كتاب` (book) | |
-| l | ل | `layl` → `ليل` (night) | |
-| m | م | `masjid` → `مسجد` (mosque) | |
-| n | ن | `nahr` → `نهر` (river) | |
-| w | و | `ward` → `ورد` (roses) | |
-| y | ي | `yad` → `يد` (hand) | |
+### 🎯 SMART TRANSLITERATION (Much Easier Now!)
+
+The system is now **much smarter** - it won't convert every single letter!
+
+#### ✅ **What Works Great:**
+| Type This | Get This | Meaning |
+|-----------|----------|---------|
+| `ahlan` | `أهلان` | welcome |
+| `habibi` | `حبيبي` | my dear |
+| `shukran` | `شكراً` | thank you |
+| `marhaba` | `مرحباً` | hello |
+| `kayf halak` | `كيف حالك` | how are you |
+
+#### 🔤 **Easy Letter Typing:**
+| Latin | Arabic | When It Converts |
+|-------|--------|------------------|
+| **kh** | **خ** | Always (special sound) |
+| **gh** | **غ** | Always (special sound) |
+| **sh** | **ش** | Always (special sound) |
+| **th** | **ث** | Always (special sound) |
+| **3** | **ع** | Always (chat Arabic) |
+| **7** | **ح** | Always (chat Arabic) |
+| **9** | **ق** | Always (chat Arabic) |
+| **b, t, j, d, r, z, s, f, k, l, m, n, w, y** | Arabic letters | Always |
+
+#### 🧠 **Smart Vowel Handling:**
+- **`a`** only converts in Arabic contexts (not in English words)
+- **`i`** only converts at word endings (`habibi` → `حبيبي`)
+- **`o`**, **`e`**, **`u`** mostly stay as English letters
+- **`h`** only converts at word ends or before consonants
+
+#### 💡 **Result: Much Easier Typing!**
+- Type normal English: `hello` stays `hello`
+- Type Arabic words: `ahlan` becomes `أهلان`
+- Mix freely: `hello habibi` becomes `hello حبيبي`
 
 ### Hamza Forms (CRITICAL NEW FEATURE!)
 | Latin | Arabic | Example | Usage |
