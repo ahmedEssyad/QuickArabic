@@ -113,21 +113,59 @@ class PopupController {
         return;
       }
       
-      // Send message to content script to check status
-      const response = await chrome.tabs.sendMessage(this.currentTab.id, {
-        action: 'get-status'
+      // Check if this is a special page where extension can't run
+      if (this.currentTab.url.startsWith('chrome://') || 
+          this.currentTab.url.startsWith('chrome-extension://') ||
+          this.currentTab.url.startsWith('moz-extension://') ||
+          this.currentTab.url.startsWith('about:')) {
+        statusDot.className = 'status-dot inactive';
+        statusText.textContent = 'Cannot run on this page';
+        return;
+      }
+      
+      // Check extension settings
+      const result = await chrome.storage.sync.get({
+        extensionEnabled: true,
+        enableOnAllSites: true,
+        enabledSites: []
       });
       
-      if (response && response.enabled) {
-        statusDot.className = 'status-dot active';
-        statusText.textContent = 'Active on this page';
-      } else {
+      if (!result.extensionEnabled) {
         statusDot.className = 'status-dot inactive';
-        statusText.textContent = 'Inactive on this page';
+        statusText.textContent = 'Extension disabled';
+        return;
+      }
+      
+      const hostname = new URL(this.currentTab.url).hostname;
+      const shouldBeActive = result.enableOnAllSites || result.enabledSites.includes(hostname);
+      
+      if (!shouldBeActive) {
+        statusDot.className = 'status-dot inactive';
+        statusText.textContent = 'Disabled for this site';
+        return;
+      }
+      
+      // Try to communicate with content script
+      try {
+        const response = await chrome.tabs.sendMessage(this.currentTab.id, {
+          action: 'get-status'
+        });
+        
+        if (response && response.enabled) {
+          statusDot.className = 'status-dot active';
+          statusText.textContent = 'Active on this page';
+        } else {
+          statusDot.className = 'status-dot inactive';
+          statusText.textContent = 'Inactive on this page';
+        }
+      } catch (error) {
+        // Content script not loaded, but extension should work
+        statusDot.className = 'status-dot active';
+        statusText.textContent = 'Ready (refresh to activate)';
       }
     } catch (error) {
       statusDot.className = 'status-dot inactive';
-      statusText.textContent = 'Extension not loaded';
+      statusText.textContent = 'Error checking status';
     }
   }
   

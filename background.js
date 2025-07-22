@@ -181,7 +181,31 @@ class QuickArabicBackground {
     try {
       const tab = await this.getActiveTab();
       if (tab) {
-        await chrome.tabs.sendMessage(tab.id, message);
+        // Check if tab can receive messages (not chrome:// or extension pages)
+        if (tab.url.startsWith('chrome://') || 
+            tab.url.startsWith('chrome-extension://') ||
+            tab.url.startsWith('moz-extension://') ||
+            tab.url.startsWith('about:')) {
+          console.log('Cannot send message to special page:', tab.url);
+          return;
+        }
+        
+        try {
+          await chrome.tabs.sendMessage(tab.id, message);
+        } catch (error) {
+          // Try to inject content script first, then retry
+          console.log('Content script not found, injecting...');
+          await this.injectContentScript(tab.id);
+          
+          // Wait a bit and retry
+          setTimeout(async () => {
+            try {
+              await chrome.tabs.sendMessage(tab.id, message);
+            } catch (retryError) {
+              console.log('Message still failed after injection:', retryError.message);
+            }
+          }, 500);
+        }
       }
     } catch (error) {
       console.error('Error sending message to active tab:', error);
