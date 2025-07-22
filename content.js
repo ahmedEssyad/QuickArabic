@@ -25,19 +25,43 @@ class QuickArabicContent {
   }
   
   setupEventListeners() {
-    // Listen for keyboard shortcuts
+    // Check if we're on Facebook - use passive mode
+    this.isFacebook = window.location.hostname.includes('facebook.com');
+    
+    if (this.isFacebook) {
+      console.log('QuickArabic: Facebook detected - using passive mode');
+      this.setupPassiveMode();
+    } else {
+      console.log('QuickArabic: Standard mode enabled');
+      this.setupStandardMode();
+    }
+    
+    // Always listen for messages from background script
+    chrome.runtime.onMessage.addListener(this.handleMessage.bind(this));
+  }
+  
+  setupStandardMode() {
+    // Normal event listeners for non-Facebook sites
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
     document.addEventListener('keyup', this.handleKeyUp.bind(this));
-    
-    // Listen for focus changes to track current input
     document.addEventListener('focusin', this.handleFocusIn.bind(this));
     document.addEventListener('focusout', this.handleFocusOut.bind(this));
-    
-    // Listen for messages from background script
-    chrome.runtime.onMessage.addListener(this.handleMessage.bind(this));
-    
-    // Handle dynamic content (like Facebook)
     this.observeDOM();
+  }
+  
+  setupPassiveMode() {
+    // PASSIVE MODE: Only listen for manual selection + Ctrl+Space
+    // Avoid all focus/DOM manipulation that triggers Facebook errors
+    
+    document.addEventListener('keydown', (event) => {
+      // Only handle Ctrl+Space, ignore everything else
+      if (event.ctrlKey && event.code === 'Space') {
+        event.preventDefault();
+        this.handleFacebookPassiveConversion();
+      }
+    });
+    
+    // No focus tracking, no DOM observation - completely passive
   }
   
   handleKeyDown(event) {
@@ -1145,6 +1169,233 @@ class QuickArabicContent {
       console.error('QuickArabic: Text node search error:', error);
       return null;
     }
+  }
+  
+  handleFacebookPassiveConversion() {
+    try {
+      console.log('QuickArabic: Facebook passive conversion triggered');
+      
+      // Get current selection - if user selected text manually, we can work with it
+      const selection = window.getSelection();
+      
+      if (selection.rangeCount === 0 || selection.isCollapsed) {
+        console.log('QuickArabic: No text selected. Please select text manually first.');
+        this.showFacebookHelp();
+        return;
+      }
+      
+      // Get the selected text
+      const selectedText = selection.toString();
+      
+      if (!selectedText.trim()) {
+        console.log('QuickArabic: Empty selection');
+        return;
+      }
+      
+      // Only convert if it contains Latin characters
+      if (!/[a-zA-Z0-9]/.test(selectedText)) {
+        console.log('QuickArabic: No Latin characters to convert');
+        return;
+      }
+      
+      // Convert the text
+      let arabicText;
+      if (/\s/.test(selectedText)) {
+        // Multiple words - use paragraph conversion
+        arabicText = this.transliterator.transliterateParagraph(selectedText);
+      } else {
+        // Single word
+        arabicText = this.transliterator.transliterate(selectedText);
+      }
+      
+      console.log(`QuickArabic: Converting "${selectedText}" to "${arabicText}"`);
+      
+      // Show preview for Facebook
+      this.showFacebookPreview(selectedText, arabicText, selection);
+      
+    } catch (error) {
+      console.error('QuickArabic: Facebook passive conversion error:', error);
+    }
+  }
+  
+  showFacebookPreview(originalText, arabicText, selection) {
+    // Store the selection for later use
+    this.savedSelection = {
+      selection: selection,
+      range: selection.getRangeAt(0).cloneRange()
+    };
+    
+    // Show a simple preview
+    if (this.previewElement) {
+      this.previewElement.querySelector('.quickarabic-original').textContent = originalText;
+      this.previewElement.querySelector('.quickarabic-converted').textContent = arabicText;
+      
+      // Position near the selection
+      this.positionPreviewNearSelection();
+      this.previewElement.style.display = 'block';
+      
+      // Auto-hide after 10 seconds for Facebook
+      setTimeout(() => {
+        if (this.previewElement.style.display === 'block') {
+          this.hidePreview();
+        }
+      }, 10000);
+    }
+  }
+  
+  positionPreviewNearSelection() {
+    if (!this.savedSelection || !this.previewElement) return;
+    
+    try {
+      const range = this.savedSelection.range;
+      const rect = range.getBoundingClientRect();
+      
+      let top = rect.bottom + window.scrollY + 10;
+      let left = rect.left + window.scrollX;
+      
+      // Keep preview on screen
+      const previewRect = this.previewElement.getBoundingClientRect();
+      if (left + previewRect.width > window.innerWidth) {
+        left = window.innerWidth - previewRect.width - 10;
+      }
+      
+      if (top + previewRect.height > window.innerHeight + window.scrollY) {
+        top = rect.top + window.scrollY - previewRect.height - 10;
+      }
+      
+      this.previewElement.style.left = `${left}px`;
+      this.previewElement.style.top = `${top}px`;
+    } catch (error) {
+      console.error('QuickArabic: Error positioning preview:', error);
+    }
+  }
+  
+  confirmConversion() {
+    if (this.isFacebook && this.savedSelection) {
+      this.performFacebookPassiveConversion();
+    } else {
+      // Standard conversion for other sites
+      const preview = this.previewElement;
+      const convertedText = preview.dataset.convertedText;
+      const selectionStart = parseInt(preview.dataset.selectionStart);
+      const selectionEnd = parseInt(preview.dataset.selectionEnd);
+      
+      this.hidePreview();
+      this.performConversion(convertedText, selectionStart, selectionEnd);
+    }
+  }
+  
+  performFacebookPassiveConversion() {
+    try {
+      if (!this.savedSelection) {
+        console.log('QuickArabic: No saved selection for Facebook conversion');
+        return;
+      }
+      
+      const arabicText = this.previewElement.querySelector('.quickarabic-converted').textContent;
+      
+      // Restore the selection
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(this.savedSelection.range);
+      
+      // Use the most compatible method for Facebook
+      const success = document.execCommand('insertText', false, arabicText);
+      
+      if (success) {
+        console.log('QuickArabic: Facebook passive conversion succeeded!');
+      } else {
+        console.log('QuickArabic: Facebook conversion failed, text may not appear');
+        // Show instruction to copy-paste manually
+        this.showFacebookFallback(arabicText);
+      }
+      
+      this.hidePreview();
+      this.savedSelection = null;
+      
+    } catch (error) {
+      console.error('QuickArabic: Facebook passive conversion error:', error);
+      this.showFacebookFallback(this.previewElement.querySelector('.quickarabic-converted').textContent);
+    }
+  }
+  
+  showFacebookHelp() {
+    // Show a temporary message
+    const helpDiv = document.createElement('div');
+    helpDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4CAF50;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      z-index: 9999999;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      max-width: 300px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    `;
+    helpDiv.innerHTML = `
+      <strong>QuickArabic:</strong><br>
+      Please select text manually first, then press Ctrl+Space<br>
+      <small>(Drag with mouse to highlight text)</small>
+    `;
+    
+    document.body.appendChild(helpDiv);
+    
+    setTimeout(() => {
+      if (helpDiv.parentNode) {
+        helpDiv.parentNode.removeChild(helpDiv);
+      }
+    }, 4000);
+  }
+  
+  showFacebookFallback(arabicText) {
+    // Show the converted text for manual copy-paste
+    const fallbackDiv = document.createElement('div');
+    fallbackDiv.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #4CAF50;
+      padding: 20px;
+      border-radius: 8px;
+      z-index: 9999999;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      direction: rtl;
+    `;
+    fallbackDiv.innerHTML = `
+      <div style="direction: ltr; text-align: center; margin-bottom: 10px;">
+        <strong>Converted Text (copy this):</strong>
+      </div>
+      <div style="background: #f0f0f0; padding: 10px; border-radius: 4px; font-size: 18px; text-align: center;">
+        ${arabicText}
+      </div>
+      <div style="direction: ltr; text-align: center; margin-top: 10px;">
+        <button onclick="navigator.clipboard.writeText('${arabicText}'); this.textContent='Copied!'" 
+                style="background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+          Copy to Clipboard
+        </button>
+        <button onclick="this.parentNode.parentNode.remove()" 
+                style="background: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+          Close
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(fallbackDiv);
+    
+    // Auto-remove after 15 seconds
+    setTimeout(() => {
+      if (fallbackDiv.parentNode) {
+        fallbackDiv.parentNode.removeChild(fallbackDiv);
+      }
+    }, 15000);
   }
   
   triggerInputEvents() {
