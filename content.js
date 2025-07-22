@@ -640,41 +640,93 @@ class QuickArabicContent {
   facebookSimpleReplace(arabicText, selectionStart, selectionEnd) {
     try {
       const element = this.currentElement;
-      console.log('QuickArabic: Trying simple Facebook replacement...');
+      console.log('QuickArabic: Trying Facebook-friendly replacement...');
       
-      // Step 1: Focus the element
-      element.focus();
+      // GENTLE APPROACH: Don't mess with Facebook's focus system
+      // Just work with the current selection if it exists
       
-      // Step 2: Create a selection for the text to replace
       const selection = window.getSelection();
-      selection.removeAllRanges();
       
-      // Find the text node and create range
-      const range = this.createRangeAtPosition(element, selectionStart, selectionEnd);
-      if (!range) {
-        console.log('QuickArabic: Could not create range');
-        return false;
+      // Method 1: If there's already a selection, use it
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        
+        // Use insertText on the existing selection - most compatible with React
+        const success = document.execCommand('insertText', false, arabicText);
+        
+        if (success) {
+          console.log('QuickArabic: Facebook-friendly replacement succeeded!');
+          return true;
+        }
       }
       
-      selection.addRange(range);
+      // Method 2: If no selection, try to select the target text gently
+      try {
+        const range = this.createRangeAtPosition(element, selectionStart, selectionEnd);
+        if (range) {
+          selection.removeAllRanges();
+          selection.addRange(range);
+          
+          // Use the most React-friendly method
+          const success = document.execCommand('insertText', false, arabicText);
+          if (success) {
+            console.log('QuickArabic: Facebook gentle selection replacement succeeded!');
+            return true;
+          }
+        }
+      } catch (error) {
+        console.log('QuickArabic: Gentle selection failed, trying direct approach');
+      }
       
-      // Step 3: Use insertText which is the most React-friendly approach
-      const success = document.execCommand('insertText', false, arabicText);
+      // Method 3: Ultra-gentle direct text replacement
+      return this.facebookUltraGentle(element, arabicText, selectionStart, selectionEnd);
       
-      if (success) {
-        console.log('QuickArabic: Simple Facebook replacement succeeded with insertText');
-        // Small delay to ensure React processes the change
-        setTimeout(() => {
-          this.forceFacebookUpdate(element);
-        }, 10);
+    } catch (error) {
+      console.error('QuickArabic: Facebook-friendly replacement failed:', error);
+      return false;
+    }
+  }
+  
+  facebookUltraGentle(element, arabicText, selectionStart, selectionEnd) {
+    try {
+      console.log('QuickArabic: Trying ultra-gentle Facebook approach...');
+      
+      // Get current text without disturbing anything
+      const currentText = element.textContent || element.innerText || '';
+      
+      // Create new text with replacement
+      const newText = 
+        currentText.substring(0, selectionStart) + 
+        arabicText + 
+        currentText.substring(selectionEnd);
+      
+      // Method 1: Try using React's own input setter if available
+      const inputSetter = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'textContent') ||
+                         Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
+      
+      if (inputSetter && inputSetter.set) {
+        inputSetter.set.call(element, newText);
+        
+        // Dispatch only the most essential events
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        
+        console.log('QuickArabic: Ultra-gentle React setter approach succeeded!');
         return true;
       }
       
-      // Step 4: If insertText failed, try paste simulation
-      return this.simulateRealPaste(element, arabicText);
+      // Method 2: Minimal DOM manipulation
+      element.textContent = newText;
+      
+      // Only trigger the most essential event
+      setTimeout(() => {
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+      }, 10);
+      
+      console.log('QuickArabic: Ultra-gentle DOM approach succeeded!');
+      return true;
       
     } catch (error) {
-      console.error('QuickArabic: Simple Facebook replacement failed:', error);
+      console.error('QuickArabic: Ultra-gentle approach failed:', error);
       return false;
     }
   }
@@ -919,24 +971,14 @@ class QuickArabicContent {
   
   forceFacebookUpdate(element) {
     try {
-      // Trigger all possible events that Facebook might listen for
-      const events = [
-        'input', 
-        'change', 
-        'keyup', 
-        'keydown',
-        'keypress',
-        'textInput',
-        'paste',
-        'compositionend'
-      ];
+      // GENTLE UPDATE: Only trigger essential events, avoid focus manipulation
+      const essentialEvents = ['input', 'change'];
       
-      events.forEach(eventType => {
+      essentialEvents.forEach(eventType => {
         try {
           const event = new Event(eventType, {
             bubbles: true,
-            cancelable: true,
-            composed: true
+            cancelable: true
           });
           element.dispatchEvent(event);
         } catch (e) {
@@ -944,19 +986,15 @@ class QuickArabicContent {
         }
       });
       
-      // Special handling for React
+      // Special handling for React without aggressive manipulation
       if (element._valueTracker) {
         element._valueTracker.setValue('');
       }
       
-      // Force focus and blur to trigger updates
-      element.blur();
-      setTimeout(() => {
-        element.focus();
-      }, 5);
+      console.log('QuickArabic: Gentle Facebook update completed');
       
     } catch (error) {
-      console.error('QuickArabic: Force Facebook update failed:', error);
+      console.error('QuickArabic: Gentle Facebook update failed:', error);
     }
   }
   
