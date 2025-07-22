@@ -50,18 +50,25 @@ class QuickArabicContent {
   }
   
   setupPassiveMode() {
-    // PASSIVE MODE: Only listen for manual selection + Ctrl+Space
-    // Avoid all focus/DOM manipulation that triggers Facebook errors
+    // ULTRA-PASSIVE MODE: Minimal Facebook interaction
+    console.log('QuickArabic: Setting up ultra-passive Facebook mode');
     
+    // Only add the most basic keyboard listener
     document.addEventListener('keydown', (event) => {
-      // Only handle Ctrl+Space, ignore everything else
+      // Only handle Ctrl+Space
       if (event.ctrlKey && event.code === 'Space') {
         event.preventDefault();
-        this.handleFacebookPassiveConversion();
+        event.stopPropagation();
+        
+        // Use setTimeout to avoid any timing conflicts with Facebook
+        setTimeout(() => {
+          this.handleFacebookUltraPassive();
+        }, 10);
       }
-    });
+    }, true); // Use capture phase to get event first
     
-    // No focus tracking, no DOM observation - completely passive
+    // Don't create preview element for Facebook - too risky
+    // Don't track anything - completely hands-off
   }
   
   handleKeyDown(event) {
@@ -286,6 +293,12 @@ class QuickArabicContent {
   }
   
   createPreviewElement() {
+    // Don't create preview element for Facebook - too risky
+    if (this.isFacebook) {
+      console.log('QuickArabic: Skipping preview creation for Facebook');
+      return;
+    }
+    
     this.previewElement = document.createElement('div');
     this.previewElement.className = 'quickarabic-preview';
     this.previewElement.innerHTML = `
@@ -1171,51 +1184,146 @@ class QuickArabicContent {
     }
   }
   
-  handleFacebookPassiveConversion() {
+  handleFacebookUltraPassive() {
     try {
-      console.log('QuickArabic: Facebook passive conversion triggered');
+      console.log('QuickArabic: Facebook ultra-passive triggered');
       
-      // Get current selection - if user selected text manually, we can work with it
+      // Get selection without touching anything else
       const selection = window.getSelection();
       
-      if (selection.rangeCount === 0 || selection.isCollapsed) {
-        console.log('QuickArabic: No text selected. Please select text manually first.');
-        this.showFacebookHelp();
+      if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+        this.showSimpleMessage('Please select text first, then press Ctrl+Space');
         return;
       }
       
-      // Get the selected text
-      const selectedText = selection.toString();
+      const selectedText = selection.toString().trim();
       
-      if (!selectedText.trim()) {
-        console.log('QuickArabic: Empty selection');
+      if (!selectedText) {
+        this.showSimpleMessage('No text selected');
         return;
       }
       
-      // Only convert if it contains Latin characters
       if (!/[a-zA-Z0-9]/.test(selectedText)) {
-        console.log('QuickArabic: No Latin characters to convert');
+        this.showSimpleMessage('No Latin text to convert');
         return;
       }
       
       // Convert the text
       let arabicText;
       if (/\s/.test(selectedText)) {
-        // Multiple words - use paragraph conversion
         arabicText = this.transliterator.transliterateParagraph(selectedText);
       } else {
-        // Single word
         arabicText = this.transliterator.transliterate(selectedText);
       }
       
-      console.log(`QuickArabic: Converting "${selectedText}" to "${arabicText}"`);
+      console.log(`QuickArabic: "${selectedText}" → "${arabicText}"`);
       
-      // Show preview for Facebook
-      this.showFacebookPreview(selectedText, arabicText, selection);
+      // Try simple insertion first
+      const success = document.execCommand('insertText', false, arabicText);
+      
+      if (success) {
+        console.log('QuickArabic: Facebook insertion succeeded!');
+        this.showSimpleMessage('✅ Text converted successfully!');
+      } else {
+        console.log('QuickArabic: Facebook blocked insertion, showing copy dialog');
+        this.showCopyDialog(arabicText, selectedText);
+      }
       
     } catch (error) {
-      console.error('QuickArabic: Facebook passive conversion error:', error);
+      console.error('QuickArabic: Facebook ultra-passive error:', error);
+      this.showSimpleMessage('❌ Conversion failed');
     }
+  }
+  
+  showSimpleMessage(message) {
+    // Create a very simple, non-intrusive message
+    const msg = document.createElement('div');
+    msg.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(76, 175, 80, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      z-index: 9999999;
+      pointer-events: none;
+    `;
+    msg.textContent = 'QuickArabic: ' + message;
+    
+    document.body.appendChild(msg);
+    
+    setTimeout(() => {
+      if (msg.parentNode) msg.parentNode.removeChild(msg);
+    }, 3000);
+  }
+  
+  showCopyDialog(arabicText, originalText) {
+    // Ultra-simple copy dialog
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #4CAF50;
+      border-radius: 8px;
+      padding: 20px;
+      z-index: 9999999;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      max-width: 400px;
+    `;
+    
+    dialog.innerHTML = `
+      <div style="text-align: center; margin-bottom: 15px;">
+        <strong>QuickArabic Conversion</strong>
+      </div>
+      <div style="margin-bottom: 10px;">
+        <strong>Original:</strong> ${originalText}
+      </div>
+      <div style="margin-bottom: 15px; padding: 10px; background: #f0f0f0; border-radius: 4px; direction: rtl; text-align: center; font-size: 18px;">
+        ${arabicText}
+      </div>
+      <div style="text-align: center;">
+        <button id="copyBtn" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+          Copy Arabic Text
+        </button>
+        <button id="closeBtn" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+          Close
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(dialog);
+    
+    // Add event listeners
+    dialog.querySelector('#copyBtn').onclick = () => {
+      navigator.clipboard.writeText(arabicText).then(() => {
+        dialog.querySelector('#copyBtn').textContent = 'Copied! ✅';
+        setTimeout(() => dialog.remove(), 1000);
+      }).catch(() => {
+        // Fallback for copy
+        const textArea = document.createElement('textarea');
+        textArea.value = arabicText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        dialog.querySelector('#copyBtn').textContent = 'Copied! ✅';
+        setTimeout(() => dialog.remove(), 1000);
+      });
+    };
+    
+    dialog.querySelector('#closeBtn').onclick = () => dialog.remove();
+    
+    // Auto-close after 30 seconds
+    setTimeout(() => {
+      if (dialog.parentNode) dialog.remove();
+    }, 30000);
   }
   
   showFacebookPreview(originalText, arabicText, selection) {
